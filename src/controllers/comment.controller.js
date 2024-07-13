@@ -87,7 +87,7 @@ const updateComment = asyncHandler(async (req, res) => {
 
     const comment = await Comment.findById(commentId)
 
-    if(comment.owner._id !== req.user._id) {
+    if(comment.owner._id.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "you dont have permission")
     }
 
@@ -123,7 +123,7 @@ const deleteComment = asyncHandler(async (req, res) => {
 
     const comment = await Comment.findById(commentId)
 
-    if(comment.owner._id !== req.user._id) {
+    if(comment.owner._id.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "you dont have permission")
     }
 
