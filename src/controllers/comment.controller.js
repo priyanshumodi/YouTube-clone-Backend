@@ -81,7 +81,7 @@ const updateComment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid comment Id")
     }
 
-    if(!newComment.trim()==="") {
+    if(newComment.trim()==="") {
         throw new ApiError(400, "comment is required")
     }
 
