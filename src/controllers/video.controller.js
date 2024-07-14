@@ -6,22 +6,60 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
+// debug this function it not run porperly with filteration
 const getAllVideos = asyncHandler(async (req,res) => {
     const {
         page = 1,
         limit = 10,
-        query,
-        sortBy,
-        sortType,
-        userId
+        query = '/(^video\/)|(.+)/i',
+        sortBy = 'createdAt',
+        sortType = 1,
+        userId = req.user?._id
     } = req.query;
     // TODO: get all Videos based on query, sort, pagination
 
-    const vidoe = await Video.find(
+    if(!isValidObjectId(userId)) {
+        throw new ApiError(400, "user doesn't exist");
+    }
+
+    const getAllVideoAggregate = await Video.aggregate([
         {
-            $where
+            $match: {
+                owner: new mongoose.Types.ObjectId(userId),
+                $or: [
+                    {title: {$regex: query, $options: 'i'}},
+                    {description: {$regex: query, $options: 'i'}}
+                ]
+            }
+        },
+        {
+            $sort: {
+                [sortBy]: parseInt(sortType)
+            }
+        },
+        {
+            $skip: (page -1)*limit,
+        },
+        {
+            $limit: parseInt(limit)
+        }
+    ])
+
+    const videos = await Video.aggregatePaginate(
+        getAllVideoAggregate,
+        {
+            page,
+            limit
         }
     )
+
+    if(!videos) {
+        throw new ApiError(500, "Something went wrong while fatching videos")
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, videos, "all video fetched successfully"))
 })
 
 const publishVideo = asyncHandler(async (req,res) => {
