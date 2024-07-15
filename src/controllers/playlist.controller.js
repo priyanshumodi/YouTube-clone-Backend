@@ -24,7 +24,7 @@ const createPlaylist = asyncHandler(async (req,res) => {
 
     return res
         .status(200)
-        .json(200, playlist, "playlist created successfully")
+        .json(new ApiResponse(200, playlist, "playlist created successfully"))
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
@@ -45,7 +45,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .json(200, playlists, "playlist fetched successfully")
+    .json(new ApiResponse(200, playlists, "playlist fetched successfully"))
 })
 
 const getPlaylistById = asyncHandler(async (req, res) => {
@@ -64,7 +64,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, playlist, "playlist fetched successfully")
+        .json(new ApiResponse(200, playlist, "playlist fetched successfully"))
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
@@ -97,7 +97,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, videoAddedToPlaylist, "video added successfully")
+        .json(new ApiResponse(200, videoAddedToPlaylist, "video added successfully"))
 
 })
 
@@ -132,7 +132,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, videoRemovedFromPlaylist, "video removed successfully")
+        .json(new ApiResponse(200, videoRemovedFromPlaylist, "video removed successfully"))
 })
 
 const deletePlaylist = asyncHandler(async (req, res) => {
@@ -157,7 +157,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, playlistDeleted, "playlist removed successfully")
+        .json(new ApiResponse(200, playlistDeleted, "playlist removed successfully"))
 
 })
 
@@ -196,7 +196,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, playlistUpdated, "playlist updated successfully")
+        .json(new ApiResponse(200, playlistUpdated, "playlist updated successfully"))
     
 })
 
