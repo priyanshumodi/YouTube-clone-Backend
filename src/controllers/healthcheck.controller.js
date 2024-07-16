@@ -7,7 +7,7 @@ const healthcheck = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(200, "health is Good :)")
+        .json("health is Good :)")
 })
 
 export {
