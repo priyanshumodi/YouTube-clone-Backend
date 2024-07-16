@@ -30,7 +30,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         },
         {
             $project: {
-                content: 1
+                allComments: 1
             }
         }
     ])
@@ -49,7 +49,9 @@ const addComment = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
     const {comment} = req.body
 
-    if(!comment.trim()) {
+    console.log("here is comment",comment)
+
+    if(comment.trim() === "") {
         throw new ApiError(400, "comment is required")
     }
 
