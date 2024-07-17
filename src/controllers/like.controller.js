@@ -96,7 +96,7 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
 
     const tweet = await Like.findOne({
-        video: tweetId,
+        tweet: tweetId,
         likedBy: req.user?._id
     })
 
@@ -105,14 +105,14 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
     if(!tweet) {
         result = await Like.create({
-            video: tweetId,
+            tweet: tweetId,
             likedBy: req.user?._id
         })
         like = true;
     }
     else {
         result = await Like.deleteOne({
-            video: tweetId,
+            tweet: tweetId,
             likedBy: req.user?._id
         })
         like = false;
@@ -134,17 +134,28 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         [
             {
                 $match: {
-                    owner: req.user?._id
+                    likedBy: new mongoose.Types.ObjectId(req.user?._id),
+                    video: { $ne: null }
+                }
+            },
+            {
+                $lookup: {
+                    from: "videos",
+                    localField: "video",
+                    foreignField: "_id",
+                    as: "videos"
                 }
             },
             {
                 $project: {
-                    video: 1,
+                    videos: 1,
                     likedBy:1
                 }
             }
         ]
     )
+
+    console.log(videos)
 
     if(!videos) {
         throw new ApiError(500, "something went wrong while fetching all liked videos")

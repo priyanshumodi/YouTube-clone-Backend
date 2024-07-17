@@ -13,39 +13,31 @@ const toggleSubscription = asyncHandler(async(req,res) => {
         throw new ApiError(400, "Invalid channel Id")
     }
 
-    const subscribed = await Subscription.findOne({
-        subscriber: req.user?._id,
-        channel: channelId
-    })
-
-    if(!subscribed) {
-        await Subscription.create({
+    try {
+        const subscribed = await Subscription.findOne({
+          subscriber: req.user?._id,
+          channel: channelId,
+        });
+    
+        if (!subscribed) {
+          const result = await Subscription.create({
             subscriber: req.user?._id,
-            channel: channelId
-        })
-        .then((result) => {
-            return res
-                .status(200)
-                .json(new ApiResponse(200, result, "channel Subscribed"))
-        })
-        .catch((error) => {
-            throw new ApiError(500, error)
-        })
-    }
-
-    const result = await Subscription.deleteOne({
-        subscriber: req.user?._id,
-        channel: channelId
-    })
-
-    if(!result) {
-        throw new ApiError(500, "Something wents wrong while toggle subscription")
-    }
-
-    return res
-        .status(200)
-        .json(new ApiRespon(200, result, "channeSubscribed"))
-
+            channel: channelId,
+          });
+          return res.status(200).json(new ApiResponse(200, result, "channel Subscribed"));
+        } else {
+          const result = await Subscription.deleteOne({
+            subscriber: req.user?._id,
+            channel: channelId,
+          });
+          if (!result.deletedCount) {
+            throw new ApiError(500, "Something went wrong while toggling subscription");
+          }
+          return res.status(200).json(new ApiResponse(200, result, "channel Unsubscribed"));
+        }
+      } catch (error) {
+        throw new ApiError(500, error);
+      }
 })
 
 // controller to return subscription
@@ -72,14 +64,15 @@ const getUserChannelSubscribers = asyncHandler(async(req,res)=> {
 
 // controller to return channel
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const {subscriberId} = req.params
+    const {channelId} = req.params
 
-    if(!isValidObjectId(subscriberId)) {
+    // console.log(channelId)
+    if(!isValidObjectId(channelId)) {
         throw new ApiError(400, "Invalid subscriber Id")
     }
 
     const subscribedTo = await Subscription.find({
-        subscriber: subscriberId
+        subscriber: channelId
     })
 
     if(!subscribedTo) {
