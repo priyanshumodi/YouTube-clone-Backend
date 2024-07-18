@@ -88,6 +88,9 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         playlistId,
         {
             $push: {videos: videoId}
+        },
+        {
+            new:true
         }
     )
 
@@ -123,6 +126,9 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         playlistId,
         {
             $pull: {videos: videoId}
+        },
+        {
+            new:true
         }
     )
 
@@ -187,6 +193,9 @@ const updatePlaylist = asyncHandler(async (req, res) => {
                 name,
                 description
             }
+        },
+        {
+            new:true
         }
     )
 
