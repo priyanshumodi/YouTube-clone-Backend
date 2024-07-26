@@ -6,6 +6,12 @@ import {ApiResponse} from '../utils/ApiResponse.js'
 import  jwt  from 'jsonwebtoken'
 import mongoose from 'mongoose'
 
+const helloUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json("user milega pehle login to kr")
+})
+
 
 const generateAccessAndRefreshToken = async(userId) => {
     try {
@@ -472,5 +478,6 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    helloUser
 }
