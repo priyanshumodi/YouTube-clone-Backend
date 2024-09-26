@@ -4,7 +4,13 @@ import { User } from '../models/user.model.js'
 import {uploadOnCloudinary} from '../utils/cloudinary.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import  jwt  from 'jsonwebtoken'
-import mongoose from 'mongoose'
+import mongoose, { isValidObjectId } from 'mongoose'
+
+const helloUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json("user milega pehle login to kr")
+})
 
 
 const generateAccessAndRefreshToken = async(userId) => {
@@ -52,8 +58,9 @@ const registerUser = asyncHandler(async (req,res) => {
 
     // console.log(req.files)
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
     // const converImageLocalPath = req.files?.coverImage[0]?.path;
+    console.log(avatarLocalPath)
 
     let coverImageLocalPath;
     if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
@@ -103,6 +110,8 @@ const loginUser = asyncHandler(async (req,res) => {
 
     const {email, username, password} = req.body;
 
+    console.log(email,password)
+
     if(!username && !email) {
         throw new ApiError(400,"username or email is required")
     }
@@ -118,7 +127,7 @@ const loginUser = asyncHandler(async (req,res) => {
     const isPasswordValid = await user.isPasswordCorrect(password)
 
     if(!isPasswordValid) {
-        throw new ApiError(404, "User does not exist");
+        throw new ApiError(404, "Invalid user credentials");
     }
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
@@ -461,6 +470,25 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 
 })
 
+const getUserById = asyncHandler(async(req,res) => {
+   const {id} = req.body;
+   if(!isValidObjectId(id)) {
+    throw new ApiError(400,'Invalid user id')
+   }
+
+   const user = await User.findById(id,{fullName:1, avatar: 1})
+
+   if(!user) {
+    throw new ApiError(500, 'something went wrong when user fetch')
+   }
+   
+//    console.log(user)
+   return res
+        .status(200)
+        .json(new ApiResponse(200, user, "user fetched successfully"))
+   
+})
+
 export {
     registerUser,
     loginUser,
@@ -472,5 +500,7 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    helloUser,
+    getUserById
 }

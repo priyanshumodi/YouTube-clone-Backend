@@ -47,18 +47,97 @@ const getUserChannelSubscribers = asyncHandler(async(req,res)=> {
     if(!isValidObjectId(channelId)) {
         throw new ApiError(400, "Invalid channel Id")
     }
+    console.log(req?.user?._id)
+    // const subscribers = await User.aggregate([
+    //   {
+    //     $match: {
+    //       _id: new mongoose.Types.ObjectId(channelId)
+    //     }
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: 'subscriptions',
+    //       localField: '_id',
+    //       foreignField: 'channel',
+    //       as: "subscribers"
+    //     }
+    //   },
+    //   {
+    //     $addFields: {
+    //       subscriber: {
+    //         $size:'$subscribers'
+    //       }
+    //     }
+    //   },
+    //   {
+    //     $project: {
+    //       subscriber: 1,
+    //       fullName: 1,
+    //       avatar: 1,
+    //       coverImage: 1,
+    //       username: 1,
+    //       isSubscribed: {
+    //         $eq:['$subscribers.subscriber', req.user?._id]
+    //       }
+    //     }
+    //   }
+    // ])
 
-    const subscriber = await Subscription.find({
-        channel: channelId
-    })
+    const subscribers = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(channelId)
+        }
+      },
+      {
+        $lookup: {
+          from: 'subscriptions',
+          localField: '_id',
+          foreignField: 'channel',
+          as: "subscriptions"
+        }
+      },
+      {
+        $addFields: {
+          subscriber: {
+            $size: '$subscriptions'
+          }
+        }
+      },
+      {
+        $project: {
+          subscriber: 1,
+          fullName: 1,
+          avatar: 1,
+          coverImage: 1,
+          username: 1,
+          isSubscribed: {
+            $anyElementTrue: {
+              $map: {
+                input: '$subscriptions',
+                as: 'subscription',
+                in: {
+                  $eq: ['$$subscription.subscriber', req?.user?._id]
+                }
+              }
+            }
+          }
+        }
+      }
+    ]);
+    
+    // Debugging steps:
+    console.log('req.user?._id:', req?.user?._id);
+    console.log('subscribers:', subscribers);
+    console.log('subscribers[0].subscriber:', subscribers[0]?.subscriber);
 
-    if(!subscriber) {
+    if(!subscribers) {
         throw new ApiError(500, "something went wrong while fatching subscriber")
     }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, subscriber, "all subscriber of this channel fatched successfully"))
+        .json(new ApiResponse(200, subscribers, "all subscriber of this channel fatched successfully"))
 
 })
 

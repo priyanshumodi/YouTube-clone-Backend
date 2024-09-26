@@ -10,12 +10,18 @@ import {
     updateUserAvatar, 
     updateUserCoverImage, 
     getUserChannelProfile, 
-    getWatchHistory
+    getWatchHistory,
+    helloUser,
+    getUserById
 } from '../controllers/user.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import {verifyJWT} from '../middlewares/auth.middleware.js'
 
 const router = Router();
+
+router.route('/').post(helloUser)
+
+router.route('/getUser').post(verifyJWT, getUserById)
 
 router.route('/register').post(
     upload.fields([

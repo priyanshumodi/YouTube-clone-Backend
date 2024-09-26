@@ -53,8 +53,17 @@ const getUserTweets = asyncHandler(async(req,res) => {
             }
         },
         {
+            $unwind: '$tweet'
+        },
+        {
+            $sort: {
+                'tweet.createdAt': -1
+            }
+        },
+        {
             $project: {
-                tweet: 1
+                tweet: 1,
+                _id: 0
             }
         }
     ])

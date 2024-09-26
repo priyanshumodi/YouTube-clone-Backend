@@ -130,30 +130,47 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 const getLikedVideos = asyncHandler(async (req, res) => {
     // TODO: get all liked videos
 
-    const videos = await Like.aggregate(
-        [
-            {
-                $match: {
-                    likedBy: new mongoose.Types.ObjectId(req.user?._id),
-                    video: { $ne: null }
-                }
-            },
-            {
-                $lookup: {
-                    from: "videos",
-                    localField: "video",
-                    foreignField: "_id",
-                    as: "videos"
-                }
-            },
-            {
-                $project: {
-                    videos: 1,
-                    likedBy:1
-                }
+    const videos = await Like.aggregate([
+        {
+          $match: {
+            likedBy: new mongoose.Types.ObjectId(req.user?._id),
+            video: { $ne: null }
+          }
+        },
+        {
+          $lookup: {
+            from: "videos",
+            localField: "video",
+            foreignField: "_id",
+            as: "videos"
+          }
+        },
+        {
+          $unwind: '$videos'
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "videos.owner",
+            foreignField: "_id",
+            as: "owner"
+          }
+        },
+        {
+          $unwind: '$owner'
+        },
+        {
+            $project: {
+              video: {
+                $mergeObjects: [
+                  "$videos",
+                  { owner: { fullName: "$owner.fullName", avatar: "$owner.avatar", _id: "$owner._id", username: "$owner.username" } }
+                ]
+              }
             }
-        ]
-    )
+          }
+      ]);
+      
 
     console.log(videos)
 
@@ -166,9 +183,174 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, videos, "All liked video fetched successfully"))
 })
 
+const getVideoLikes = asyncHandler(async (req, res) => {
+    const {videoId} = req.params
+
+    if(!isValidObjectId(videoId)) {
+        throw new ApiError(404, 'Invalid Video Id')
+    }
+
+    // const likes = await Like.aggregate([
+    //     {
+    //         $match: {
+    //             video: new mongoose.Types.ObjectId(videoId)
+    //         }
+    //     },
+    //     {
+    //         $addFields: {
+    //             isLiked: {
+    //                 $in: [req?.user?._id, '$likedBy']
+    //             }
+    //         }
+    //     },
+    //     {
+    //         $project: {
+    //             isLiked: 1
+    //         }
+    //     }
+    // ])
+
+    const likes = await Like.aggregate([
+        {
+            $match: {
+                video: new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $addFields: {
+                isLiked: {
+                    $eq: [req?.user?._id, '$likedBy'] // Use $eq instead of $in
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalLikes: { $sum: 1 },
+                isLiked: { $max: '$isLiked' } // Since isLiked is a boolean (either true or false), $max will return true if at least one document has isLiked set to true, otherwise it returns false.
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                totalLikes: 1,
+                isLiked: 1
+            }
+        }
+    ]);
+    
+    
+
+    if(!likes) {
+        throw new ApiError(500, 'something went wrong while fetching likes')
+    }
+
+    // console.log(likes)
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, likes, 'likes fetched successfully'))
+})
+
+const getCommentLikes = asyncHandler(async (req, res) => {
+    const {commentId} = req.params
+
+    if(!isValidObjectId(commentId)) {
+        throw new ApiError(404, 'Invalid Video Id')
+    }
+
+    const likes = await Like.aggregate([
+        {
+            $match: {
+                comment: new mongoose.Types.ObjectId(commentId)
+            }
+        },
+        {
+            $addFields: {
+                isLiked: {
+                    $eq: [req?.user?._id,'$likedBy']
+                }
+            }
+        },
+        {
+            $group: {
+                _id:null,
+                totalLikes: {$sum: 1},
+                isLiked: {$max: '$isLiked'}
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                totalLikes: 1,
+                isLiked: 1
+            }
+        }
+    ])
+
+    if(!likes) {
+        throw new ApiError(500, 'something went wrong while fetching likes')
+    }
+
+    // console.log(likes)
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, likes, 'likes fetched successfully'))
+})
+
+const getTweetLikes = asyncHandler(async (req, res) => {
+    const {tweetId} = req.params
+
+    if(!isValidObjectId(tweetId)) {
+        throw new ApiError(404, 'Invalid Video Id')
+    }
+
+    const likes = await Like.aggregate([
+        {
+            $match: {
+                tweet: new mongoose.Types.ObjectId(tweetId)
+            }
+        },
+        {
+            $addFields: {
+                isLiked: {
+                    $eq: [req?.user?._id, '$likedBy']
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalLikes: {$sum: 1},
+                isLiked: {$max: '$isLiked'}
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                totalLikes: 1,
+                isLiked: 1
+            }
+        }
+    ])
+
+    if(!likes) {
+        throw new ApiError(500, 'something went wrong while fetching likes')
+    }
+
+    // console.log(likes)
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, likes, 'likes fetched successfully'))
+})
 export {
     toggleCommentLike,
     toggleTweetLike,
     toggleVideoLike,
-    getLikedVideos
+    getLikedVideos,
+    getVideoLikes,
+    getCommentLikes,
+    getTweetLikes
 }
