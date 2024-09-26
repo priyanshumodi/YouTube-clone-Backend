@@ -12,6 +12,12 @@ const helloUser = asyncHandler(async (req, res) => {
     .json("user milega pehle login to kr")
 })
 
+const helloUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json("user milega pehle login to kr")
+})
+
 
 const generateAccessAndRefreshToken = async(userId) => {
     try {
@@ -501,6 +507,10 @@ export {
     updateUserCoverImage,
     getUserChannelProfile,
     getWatchHistory,
+<<<<<<< HEAD
     helloUser,
     getUserById
+=======
+    helloUser
+>>>>>>> c47212a5c7af20f27d40bb61dd1214f9980309ac
 }
